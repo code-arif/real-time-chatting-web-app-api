@@ -28,7 +28,7 @@ class Conversation extends Model
      */
     public function users()
     {
-        return $this->belongsToMany(User::class)
+        return $this->belongsToMany(User::class, 'conversation_users')
             ->withPivot('role', 'is_muted', 'is_archived', 'last_read_message_id', 'joined_at', 'left_at')
             ->withTimestamps()
             ->wherePivot('left_at', null);
