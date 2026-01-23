@@ -26,7 +26,7 @@ return new class extends Migration
             $table->boolean('is_archived')->default(false);
 
             // Last read message tracking
-            $table->foreignId('last_read_message_id')->nullable()->constrained('messages')->onDelete('set null');
+            $table->unsignedBigInteger('last_read_message_id')->nullable();
 
             // Joined and left timestamps
             $table->timestamp('joined_at')->useCurrent();
