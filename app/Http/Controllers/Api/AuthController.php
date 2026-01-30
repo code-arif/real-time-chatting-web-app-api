@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\RegisterRequest;
-use App\Http\Resources\UserResource;
 use App\Models\User;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Events\UserStatusChanged;
+use Illuminate\Http\JsonResponse;
+use App\Http\Requests\LoginRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\RegisterRequest;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -65,6 +66,9 @@ class AuthController extends Controller
         // Mark user as online
         $user->markAsOnline();
 
+        // Broadcast online status
+        broadcast(new UserStatusChanged($user));
+
         // Create token
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -83,11 +87,16 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
+        $user = $request->user();
+
         // Mark user as offline
-        $request->user()->markAsOffline();
+        $user->markAsOffline();
+
+        // Broadcast offline status
+        broadcast(new UserStatusChanged($user));
 
         // Delete current token
-        $request->user()->currentAccessToken()->delete();
+        $user->currentAccessToken()->delete();
 
         return response()->json([
             'success' => true,

@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\UpdateProfileRequest;
-use App\Http\Resources\UserResource;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Events\UserStatusChanged;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\UpdateProfileRequest;
 
 class ProfileController extends Controller
 {
@@ -66,6 +67,9 @@ class ProfileController extends Controller
             'status' => $request->status,
             'last_seen_at' => now(),
         ]);
+
+        // Broadcast status change
+        broadcast(new UserStatusChanged($user));
 
         return response()->json([
             'success' => true,

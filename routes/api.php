@@ -2,12 +2,17 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\TypingController;
+use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ConversationController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
 
 
 /*
@@ -45,13 +50,50 @@ Route::prefix('v1')->group(function () {
             Route::post('/push-subscription', [ProfileController::class, 'updatePushSubscription']);
         });
 
-        // User routes (will be added in next phase)
-        // Route::apiResource('users', UserController::class);
+        // User routes
+        Route::prefix('users')->group(function () {
+            Route::get('/', [UserController::class, 'index']);
+            Route::get('/search', [UserController::class, 'search']);
+            Route::get('/online', [UserController::class, 'online']);
+            Route::post('/heartbeat', [UserController::class, 'heartbeat']);
+            Route::get('/{user}', [UserController::class, 'show']);
+        });
 
-        // Conversation routes (will be added in next phase)
-        // Route::apiResource('conversations', ConversationController::class);
+        // Conversation routes
+        Route::prefix('conversations')->group(function () {
+            Route::get('/', [ConversationController::class, 'index']);
+            Route::post('/', [ConversationController::class, 'store']);
+            Route::get('/{conversation}', [ConversationController::class, 'show']);
+            Route::post('/{conversation}', [ConversationController::class, 'update']);
+            Route::delete('/{conversation}', [ConversationController::class, 'destroy']);
 
-        // Message routes (will be added in next phase)
-        // Route::apiResource('messages', MessageController::class);
+            // Group management
+            Route::post('/{conversation}/add-user', [ConversationController::class, 'addUser']);
+            Route::post('/{conversation}/remove-user', [ConversationController::class, 'removeUser']);
+            Route::post('/{conversation}/make-admin', [ConversationController::class, 'makeAdmin']);
+
+            // Conversation settings
+            Route::post('/{conversation}/toggle-mute', [ConversationController::class, 'toggleMute']);
+            Route::post('/{conversation}/toggle-archive', [ConversationController::class, 'toggleArchive']);
+
+            // Messages in conversation
+            Route::get('/{conversation}/messages', [MessageController::class, 'index']);
+
+            // Typing indicators
+            Route::post('/{conversation}/typing', [TypingController::class, 'typing']);
+            Route::post('/{conversation}/stop-typing', [TypingController::class, 'stopTyping']);
+            Route::get('/{conversation}/typing-users', [TypingController::class, 'getCurrentlyTyping']);
+        });
+
+        // Message routes
+        Route::prefix('messages')->group(function () {
+            Route::post('/', [MessageController::class, 'store']);
+            Route::get('/unread-count', [MessageController::class, 'unreadCount']);
+            Route::post('/mark-as-read', [MessageController::class, 'markAsRead']);
+            Route::get('/{message}', [MessageController::class, 'show']);
+            Route::put('/{message}', [MessageController::class, 'update']);
+            Route::delete('/{message}', [MessageController::class, 'destroy']);
+            Route::post('/{message}/reaction', [MessageController::class, 'toggleReaction']);
+        });
     });
 });
