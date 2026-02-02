@@ -26,8 +26,19 @@ class ConversationController extends Controller
             })
             ->with(['latestMessage.sender', 'users'])
             ->withCount('users')
-            ->orderBy('last_message_at', 'desc')
+            // ->orderBy('last_message_at', 'desc')
+            // ->orderBy('id', 'desc')
             ->get();
+
+        // $conversations = Conversation::query()
+        //     ->whereHas(
+        //         'users',
+        //         fn($q) =>
+        //         $q->where('users.id', $request->user()->id)
+        //     )
+        //     ->with(['latestMessage.sender', 'users'])
+        //     ->orderByRaw("COALESCE(last_message_at, created_at) DESC")
+        //     ->get();
 
         return response()->json([
             'success' => true,
