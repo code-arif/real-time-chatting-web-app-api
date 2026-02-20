@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:4173', 'https://chat-backend.codearif.com'],
+    'allowed_origins' => ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:4173', 'https://chat.codearif.com'],
 
     'allowed_origins_patterns' => [],
 
