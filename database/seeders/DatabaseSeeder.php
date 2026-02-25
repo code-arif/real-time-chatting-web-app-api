@@ -8,13 +8,14 @@ use App\Models\MessageRead;
 use App\Models\Conversation;
 use App\Models\MessageReaction;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // ==============================
         // Create main test user
+        // ==============================
         $mainUser = User::factory()->online()->create([
             'name' => 'John Doe',
             'email' => 'john@gmail.com',
@@ -23,25 +24,29 @@ class DatabaseSeeder extends Seeder
 
         echo "Created main user: {$mainUser->email} (password: 12345678)\n";
 
-        // Create additional users
+        // ==============================
+        // Create additional users (ONLY random users)
+        // ==============================
         $users = User::factory(10)->create();
-        $allUsers = $users->push($mainUser);
-
         echo "Created " . $users->count() . " additional users\n";
 
-        // Create private conversations
+        // ==============================
+        // Private Conversations
+        // ==============================
         $privateConversations = [];
+
         for ($i = 0; $i < 10; $i++) {
             $conversation = Conversation::factory()->private()->create([
                 'created_by' => $mainUser->id,
             ]);
 
-            // Add main user and one random user
+            // Attach main user
             $conversation->users()->attach($mainUser->id, [
                 'role' => 'member',
                 'joined_at' => now(),
             ]);
 
+            // Attach one random user (not main user)
             $otherUser = $users->random();
             $conversation->users()->attach($otherUser->id, [
                 'role' => 'member',
@@ -53,8 +58,11 @@ class DatabaseSeeder extends Seeder
 
         echo "Created " . count($privateConversations) . " private conversations\n";
 
-        // Create group conversations
+        // ==============================
+        // Group Conversations
+        // ==============================
         $groupConversations = [];
+
         for ($i = 0; $i < 5; $i++) {
             $conversation = Conversation::factory()->group()->create([
                 'name' => fake()->words(3, true) . ' Group',
@@ -67,15 +75,14 @@ class DatabaseSeeder extends Seeder
                 'joined_at' => now(),
             ]);
 
-            // Add 3-8 random members
-            $members = $users->random(rand(3, 8));
+            // Add 3–8 random members (excluding main user)
+            $members = $users->random(rand(3, min(8, $users->count())));
+
             foreach ($members as $member) {
-                if (!$conversation->users()->where('users.id', $member->id)->exists()) {
-                    $conversation->users()->attach($member->id, [
-                        'role' => 'member',
-                        'joined_at' => now(),
-                    ]);
-                }
+                $conversation->users()->attach($member->id, [
+                    'role' => 'member',
+                    'joined_at' => now(),
+                ]);
             }
 
             $groupConversations[] = $conversation;
@@ -83,7 +90,9 @@ class DatabaseSeeder extends Seeder
 
         echo "Created " . count($groupConversations) . " group conversations\n";
 
-        // Create messages for all conversations
+        // ==============================
+        // Messages + Replies + Reactions + Read Receipts
+        // ==============================
         $allConversations = array_merge($privateConversations, $groupConversations);
         $totalMessages = 0;
 
@@ -97,10 +106,13 @@ class DatabaseSeeder extends Seeder
                 $message = Message::factory()->create([
                     'conversation_id' => $conversation->id,
                     'sender_id' => $sender->id,
-                    'created_at' => now()->subDays(rand(0, 7))->subHours(rand(0, 23))->subMinutes(rand(0, 59)),
+                    'created_at' => now()
+                        ->subDays(rand(0, 7))
+                        ->subHours(rand(0, 23))
+                        ->subMinutes(rand(0, 59)),
                 ]);
 
-                // Add some replies (20% chance)
+                // 20% reply chance
                 if (rand(1, 100) <= 20 && $i > 0) {
                     $previousMessages = $conversation->messages()->where('id', '<', $message->id)->get();
                     if ($previousMessages->count() > 0) {
@@ -110,7 +122,7 @@ class DatabaseSeeder extends Seeder
                     }
                 }
 
-                // Add reactions (30% chance)
+                // 30% reaction chance
                 if (rand(1, 100) <= 30) {
                     $emojis = ['👍', '❤️', '😂', '😮', '😢', '🔥'];
                     $reactingUsers = $conversationUsers->random(rand(1, min(3, $conversationUsers->count())));
@@ -126,7 +138,7 @@ class DatabaseSeeder extends Seeder
                     }
                 }
 
-                // Mark some messages as read
+                // Read receipts (70% chance)
                 foreach ($conversationUsers as $user) {
                     if ($user->id !== $sender->id && rand(1, 100) <= 70) {
                         MessageRead::create([
@@ -149,10 +161,10 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        echo "✅ Created {$totalMessages} messages with reactions and read receipts\n";
-
+        // ==============================
         // Summary
-        echo "\n";
+        // ==============================
+        echo "✅ Created {$totalMessages} messages with reactions and read receipts\n\n";
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
         echo "🎉 Database seeding completed!\n";
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
@@ -161,11 +173,10 @@ class DatabaseSeeder extends Seeder
         echo "   • Conversations: " . Conversation::count() . "\n";
         echo "   • Messages: " . Message::count() . "\n";
         echo "   • Reactions: " . MessageReaction::count() . "\n";
-        echo "   • Read Receipts: " . MessageRead::count() . "\n";
-        echo "\n";
+        echo "   • Read Receipts: " . MessageRead::count() . "\n\n";
         echo "🔐 Test Account:\n";
-        echo "   Email: john@example.com\n";
-        echo "   Password: password\n";
+        echo "   Email: john@gmail.com\n";
+        echo "   Password: 12345678\n";
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
     }
 }
