@@ -17,17 +17,17 @@ class DatabaseSeeder extends Seeder
         // Create main test user
         $mainUser = User::factory()->online()->create([
             'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => bcrypt('password'),
+            'email' => 'john@gmail.com',
+            'password' => bcrypt('12345678'),
         ]);
 
-        echo "✅ Created main user: {$mainUser->email} (password: password)\n";
+        echo "Created main user: {$mainUser->email} (password: 12345678)\n";
 
         // Create additional users
-        $users = User::factory(20)->create();
+        $users = User::factory(10)->create();
         $allUsers = $users->push($mainUser);
 
-        echo "✅ Created " . $users->count() . " additional users\n";
+        echo "Created " . $users->count() . " additional users\n";
 
         // Create private conversations
         $privateConversations = [];
@@ -51,7 +51,7 @@ class DatabaseSeeder extends Seeder
             $privateConversations[] = $conversation;
         }
 
-        echo "✅ Created " . count($privateConversations) . " private conversations\n";
+        echo "Created " . count($privateConversations) . " private conversations\n";
 
         // Create group conversations
         $groupConversations = [];
@@ -81,7 +81,7 @@ class DatabaseSeeder extends Seeder
             $groupConversations[] = $conversation;
         }
 
-        echo "✅ Created " . count($groupConversations) . " group conversations\n";
+        echo "Created " . count($groupConversations) . " group conversations\n";
 
         // Create messages for all conversations
         $allConversations = array_merge($privateConversations, $groupConversations);
